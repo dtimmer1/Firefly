@@ -1,6 +1,6 @@
 <!DOCTYPE flight_plan SYSTEM "flight_plan.dtd">
 
-<flight_plan alt="260" ground_alt="185" lat0="43.46223" lon0="1.27289" max_dist_from_home="1750" name="Basic" security_height="25">
+<flight_plan alt="260" ground_alt="185" lat0="43.46223" lon0="1.27289" max_dist_from_home="1800" name="Basic" security_height="25">
   <header>
 #include "subsystems/datalink/datalink.h"
 </header>
@@ -25,6 +25,7 @@
     <waypoint name="Start_W" x="-1000" y="0"/>
     <waypoint name="Start_NE" x="710" y="710"/>
     <waypoint name="Start_NW" x="-710" y="710"/>
+    <waypoint name="Mid_NW" x="-1300" y="850"/>
     <waypoint name="Start_SE" x="710" y="-710"/>
     <waypoint name="Start_SW" x="-710" y="-710"/>
   </waypoints>
@@ -48,8 +49,11 @@
       <set value="0" var="autopilot.flight_time"/>
       <go from="HOME" pitch="15" throttle="1.0" vmode="throttle" wp="CLIMB"/>
     </block>
-    <block name="Burn NW">
+    <block name="Burn NW" strip_button="\"Burn NW\"" strip_icon="takeoff.png">
       <go wp="Start_NW"/>
+      <circle radius="-764" until="NavCircleCount() > 0.2" wp="Northwest"/>
+      <go wp="Mid_NW"/>
+      <circle radius="450" until="NavCircleCount() > 0.25" wp="Mid_NW"/>
       <deroute block="Standby"/>
     </block>
     <block group="home" key="Ctrl+a" name="Standby" strip_button="Standby" strip_icon="home.png">
