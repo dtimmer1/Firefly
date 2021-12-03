@@ -24,10 +24,13 @@
     <waypoint name="Start_E" x="1000" y="0"/>
     <waypoint name="Start_W" x="-1000" y="0"/>
     <waypoint name="Start_NE" x="710" y="710"/>
+    <waypoint name="Mid_NE" x="1300" y="850"/>
     <waypoint name="Start_NW" x="-710" y="710"/>
     <waypoint name="Mid_NW" x="-1300" y="850"/>
     <waypoint name="Start_SE" x="710" y="-710"/>
+    <waypoint name="Mid_SE" x="1300" y="-850"/>
     <waypoint name="Start_SW" x="-710" y="-710"/>
+    <waypoint name="Mid_SW" x="-1300" y="-850"/>
   </waypoints>
   <exceptions/>
   <blocks>
@@ -49,11 +52,52 @@
       <set value="0" var="autopilot.flight_time"/>
       <go from="HOME" pitch="15" throttle="1.0" vmode="throttle" wp="CLIMB"/>
     </block>
-    <block name="Burn NW" strip_button="\"Burn NW\"" strip_icon="takeoff.png">
+    <block name="Burn NW" strip_button="Burn_NW" strip_icon="takeoff.png">
       <go wp="Start_NW"/>
-      <circle radius="-764" until="NavCircleCount() > 0.2" wp="Northwest"/>
+      <circle radius="-764" until="NavCircleCount() > 0.15" wp="Northwest"/>
       <go wp="Mid_NW"/>
-      <circle radius="450" until="NavCircleCount() > 0.25" wp="Mid_NW"/>
+      <circle radius="-764" until="NavCircleCount() > 0.12" wp="Northwest"/>
+      <deroute block="Standby"/>
+    </block>
+    <block name="Burn NE" strip_button="Burn_NE" strip_icon="takeoff.png">
+      <go wp="Start_NE"/>
+      <circle radius="764" until="NavCircleCount() > 0.15" wp="Northeast"/>
+      <go wp="Mid_NE"/>
+      <circle radius="764" until="NavCircleCount() > 0.12" wp="Northeast"/>
+      <deroute block="Standby"/>
+    </block>
+    <block name="Burn SW" strip_button="Burn_SW" strip_icon="takeoff.png">
+      <go wp="Start_SW"/>
+      <circle radius="764" until="NavCircleCount() > 0.15" wp="Southwest"/>
+      <go wp="Mid_SW"/>
+      <circle radius="764" until="NavCircleCount() > 0.12" wp="Southwest"/>
+      <deroute block="Standby"/>
+    </block>
+    <block name="Burn SE" strip_button="Burn_SE" strip_icon="takeoff.png">
+      <go wp="Start_SE"/>
+      <circle radius="-764" until="NavCircleCount() > 0.15" wp="Southeast"/>
+      <go wp="Mid_SE"/>
+      <circle radius="-764" until="NavCircleCount() > 0.12" wp="Southeast"/>
+      <deroute block="Standby"/>
+    </block>
+    <block name="Burn N" strip_button="Burn N" strip_icon="takeoff.png">
+      <go wp="Start_N"/>
+      <circle radius="230" until="NavCircleCount() > 0.9" wp="Start_N"/>
+      <deroute block="Standby"/>
+    </block>
+    <block name="Burn_S" strip_button="Burn S" strip_icon="takeoff.png">
+      <go wp="Start_S"/>
+      <circle radius="230" until="NavCircleCount() > 0.9" wp="Start_S"/>
+      <deroute block="Standby"/>
+    </block>
+    <block name="Burn_E" strip_button="Burn E" strip_icon="takeoff.png">
+      <go wp="Start_E"/>
+      <circle radius="230" until="NavCircleCount() > 0.9" wp="Start_E"/>
+      <deroute block="Standby"/>
+    </block>
+    <block name="Burn_W" strip_button="Burn W" strip_icon="takeoff.png">
+      <go wp="Start_S"/>
+      <circle radius="230" until="NavCircleCount() > 0.9" wp="Start_W"/>
       <deroute block="Standby"/>
     </block>
     <block group="home" key="Ctrl+a" name="Standby" strip_button="Standby" strip_icon="home.png">
