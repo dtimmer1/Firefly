@@ -1,16 +1,15 @@
 package main
 
 import (
-	"container/heap"
+    "container/heap"
 	"encoding/json"
 	"firefly/firefly"
-	"flag"
 	"fmt"
 	"os"
 	"time"
+    "log"
 )
 
-// Slice of Intervals
 type OutputHeap []*firefly.Output
 
 func (h OutputHeap) Len() int {
@@ -44,43 +43,7 @@ func (h *OutputHeap) Peek() interface{} {
 	return x
 }
 
-/*
- * scanWeather()
- * Process weather data for a chunk of the search area.
- * Launches a single goroutine that scans the region defined by lat0, lat1, long0, and long1,
- * sending GET requests to each 2.5x2.5km grid square.
- * Sends the output to the main goroutine via a generated channel.
- */
-
-func scanWeather(lat0 float64, lat1 float64, long0 float64, long1 float64, agg chan firefly.Output) {
-	for lat := lat0; lat < lat1; lat += 0.02 { //2.5km is roughly 0.02 degrees of latitude/longitude
-		for long := long0; long < long1; long += 0.02 {
-			url := fmt.Sprintf("https://api.weather.gov/points/%f,%f", lat, long)
-			val, err := firefly.SendGetRequest(url)
-			if err != 0 {
-				continue
-			}
-
-			dec := json.NewDecoder(val.Body)
-			var forecast firefly.Response
-
-			dec.Decode(&forecast)
-
-			val, err = firefly.SendGetRequest(forecast.Properties.ForecastHourly)
-			if err != 0 {
-				continue
-			}
-
-			var data firefly.Contents
-			dec = json.NewDecoder(val.Body)
-
-			dec.Decode(&data)
-
-			total := firefly.GetScore(data)
-			agg <- total
-		}
-	}
-}
+var cfg firefly.Config
 
 func check(lat float64, long float64) {
 	url := fmt.Sprintf("https://api.weather.gov/points/%f,%f", lat, long)
@@ -109,14 +72,14 @@ func check(lat float64, long float64) {
 }
 
 func scan(lat0 float64, lat1 float64, long0 float64, long1 float64) {
-	latInterval := (lat1 - lat0) / 8
+	latInterval := (lat1 - lat0) / float64(cfg.Num_goroutines)
 
-	agg := make(chan firefly.Output, 8)
+	agg := make(chan firefly.Output, cfg.Num_goroutines)
 	results := &OutputHeap{}
 	heap.Init(results)
 
-	for i := 0; i < 8; i++ {
-		go scanWeather(lat0, lat0+latInterval, long0, long1, agg)
+	for i := 0; i < cfg.Num_goroutines; i++ {
+		go firefly.ScanWeather(lat0, lat0+latInterval, long0, long1, agg)
 		time.Sleep(time.Millisecond * time.Duration(100))
 		lat0 += latInterval
 	}
@@ -127,9 +90,9 @@ Loop:
 	for {
 		select {
 		case output := <-agg:
-			if results.Len() < 10 || output.Score > results.Peek().(*firefly.Output).Score {
+			if results.Len() < cfg.Num_ranked_regions || output.Score > results.Peek().(*firefly.Output).Score {
 				heap.Push(results, &output)
-				if results.Len() > 10 {
+				if results.Len() > cfg.Num_ranked_regions {
 					heap.Pop(results)
 				}
 			}
@@ -150,25 +113,17 @@ Loop:
 }
 
 func main() {
-	checker := flag.NewFlagSet("check", flag.ContinueOnError)
-	check_lat := checker.Float64("lat", 0.0, "latitude to check")
-	check_long := checker.Float64("long", 0.0, "longitude to check")
-
-	scanner := flag.NewFlagSet("scan", flag.ContinueOnError)
-	scan_lat0 := scanner.Float64("start_lat", 0.0, "beginning of latitude region")
-	scan_lat1 := scanner.Float64("end_lat", 0.0, "end of latitude region")
-	scan_long0 := scanner.Float64("start_long", 0.0, "beginning of longitude region")
-	scan_long1 := scanner.Float64("end_long", 0.0, "end of longitude region")
+    config, err := firefly.ConfigInit("config.yml")
+    cfg = *config
+    if err != nil {
+        log.Fatal(err)
+    }
 
 	switch os.Args[1] {
 	case "check":
-		if err := checker.Parse(os.Args[2:]); err == nil {
-			check(*check_lat, *check_long)
-		}
+		check(cfg.Check_lat, cfg.Check_long)
 	case "scan":
-		if err := scanner.Parse(os.Args[2:]); err == nil {
-			scan(*scan_lat0, *scan_lat1, *scan_long0, *scan_long1)
-		}
+	    scan(cfg.Start_lat, cfg.End_lat, cfg.Start_long, cfg.End_long)
 	default:
 		fmt.Println("command must be one of check or scan")
 	}

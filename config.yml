@@ -1,0 +1,35 @@
+####################################
+#config.yml
+####################################
+#Allows for non-technically oriented people to edit controlled burn factors and region variables
+#without getting deep into our codebase
+####################################
+
+#Scoring variables
+temp_max: 40
+temp_min: 60
+wspeed_max: 3
+wspeed_min: 7
+
+#Region variables
+#Check Region
+check_lat: 27.6648
+check_long: -80.5158
+#Scan Region
+start_lat: 27.6648
+end_lat: 28.6648
+start_long: -81.5158
+end_long: -80.5158
+
+#Data analysis variables
+num_ranked_regions: 10
+num_goroutines: 8
+
+####################################
+#Other factors we may consider in the future
+#days_since_rain:
+#humidity_min:
+#humidity_max:
+#foliage_level:
+#min_alt:
+####################################
