@@ -1,30 +1,31 @@
 package firefly
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
+	"net/http"
 	"os"
-    "fmt"
-    "encoding/json"
-    "net/http"
 	"strconv"
 	"strings"
 	"time"
-    "gopkg.in/yaml.v3"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
-    Temp_max int `yaml:"temp_max"`
-    Temp_min int `yaml:"temp_min"`
-    Wspeed_max int `yaml:"wspeed_max"`
-    Wspeed_min int `yaml:"wspeed_min"`
-    Check_lat float64 `yaml:"check_lat"`
-    Check_long float64 `yaml:"check_long"`
-    Start_lat float64 `yaml:"start_lat"`
-    End_lat float64 `yaml:"end_lat"`
-    Start_long float64 `yaml:"start_long"`
-    End_long float64 `yaml:"end_long"`
-    Num_goroutines int `yaml:"num_goroutines"`
-    Num_ranked_regions int `yaml:"num_ranked_regions"`
+	Temp_max           int     `yaml:"temp_max"`
+	Temp_min           int     `yaml:"temp_min"`
+	Wspeed_max         int     `yaml:"wspeed_max"`
+	Wspeed_min         int     `yaml:"wspeed_min"`
+	Check_lat          float64 `yaml:"check_lat"`
+	Check_long         float64 `yaml:"check_long"`
+	Start_lat          float64 `yaml:"start_lat"`
+	End_lat            float64 `yaml:"end_lat"`
+	Start_long         float64 `yaml:"start_long"`
+	End_long           float64 `yaml:"end_long"`
+	Num_goroutines     int     `yaml:"num_goroutines"`
+	Num_ranked_regions int     `yaml:"num_ranked_regions"`
 }
 
 type Response struct {
@@ -71,17 +72,21 @@ func GetScore(region Contents) Output {
 	count := 0
 	total := 0
 	for _, i := range region.Properties.Periods {
+		total++
 		parts := strings.Split(i.WindSpeed, " ")
 		speed, err := strconv.Atoi(parts[0])
 
-		if err == nil {
-			if speed >= fconfig.Wspeed_min && speed <= fconfig.Wspeed_max {
-				if i.Temperature >= fconfig.Temp_min && i.Temperature <= fconfig.Temp_max {
-					count++
-				}
-			}
+		if err != nil {
+			continue
 		}
-		total++
+		if speed < fconfig.Wspeed_min || speed > fconfig.Wspeed_max {
+			continue
+		}
+		if i.Temperature < fconfig.Temp_min || i.Temperature > fconfig.Temp_max {
+			continue
+		}
+
+		count++
 	}
 	return Output{
 		region.Geometry.Coordinates[0][1][1],
@@ -91,22 +96,22 @@ func GetScore(region Contents) Output {
 	}
 }
 
-func ConfigInit(filePath string) (*Config, error){
-    config := &Config{}
+func ConfigInit(filePath string) (*Config, error) {
+	config := &Config{}
 
-    file, err := os.Open(filePath)
-    if err!= nil {
-        return nil, err
-    }
-    defer file.Close()
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
 
-    d := yaml.NewDecoder(file)
-    if err := d.Decode(config); err != nil {
-        return nil, err
-    }
+	d := yaml.NewDecoder(file)
+	if err := d.Decode(config); err != nil {
+		return nil, err
+	}
 
-    fconfig = *config
-    return config, nil
+	fconfig = *config
+	return config, nil
 }
 
 /*
@@ -146,5 +151,3 @@ func ScanWeather(lat0 float64, lat1 float64, long0 float64, long1 float64, agg c
 		}
 	}
 }
-
-
