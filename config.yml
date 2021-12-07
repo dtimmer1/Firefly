@@ -13,17 +13,27 @@ wspeed_min: 7
 
 #Region variables
 #Check Region
-check_lat: 27.6648
-check_long: -80.5158
+check_lat: 42.0987
+check_long: -75.9180
 #Scan Region
-start_lat: 27.6648
-end_lat: 28.6648
-start_long: -81.5158
-end_long: -80.5158
+start_lat: 41.0987
+end_lat: 42.0987
+start_long: -76.9180
+end_long: -75.9180
 
 #Data analysis variables
 num_ranked_regions: 10
 num_goroutines: 8
+
+#Timing synchronization (in ms)
+request_delay: 37
+scanner_delay: 59
+
+
+#Output logging and monitoring
+log_file: log.txt
+output_file: results.txt
+processing_interval: 100
 
 ####################################
 #Other factors we may consider in the future

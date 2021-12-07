@@ -13,20 +13,29 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// YAML struct
+
 type Config struct {
-	Temp_max           int     `yaml:"temp_max"`
-	Temp_min           int     `yaml:"temp_min"`
-	Wspeed_max         int     `yaml:"wspeed_max"`
-	Wspeed_min         int     `yaml:"wspeed_min"`
-	Check_lat          float64 `yaml:"check_lat"`
-	Check_long         float64 `yaml:"check_long"`
-	Start_lat          float64 `yaml:"start_lat"`
-	End_lat            float64 `yaml:"end_lat"`
-	Start_long         float64 `yaml:"start_long"`
-	End_long           float64 `yaml:"end_long"`
-	Num_goroutines     int     `yaml:"num_goroutines"`
-	Num_ranked_regions int     `yaml:"num_ranked_regions"`
+	Temp_max            int     `yaml:"temp_max"`
+	Temp_min            int     `yaml:"temp_min"`
+	Wspeed_max          int     `yaml:"wspeed_max"`
+	Wspeed_min          int     `yaml:"wspeed_min"`
+	Check_lat           float64 `yaml:"check_lat"`
+	Check_long          float64 `yaml:"check_long"`
+	Start_lat           float64 `yaml:"start_lat"`
+	End_lat             float64 `yaml:"end_lat"`
+	Start_long          float64 `yaml:"start_long"`
+	End_long            float64 `yaml:"end_long"`
+	Num_goroutines      int     `yaml:"num_goroutines"`
+	Num_ranked_regions  int     `yaml:"num_ranked_regions"`
+	Request_delay       int     `yaml:"request_delay"`
+	Scanner_delay       int     `yaml:"scanner_delay"`
+	Log_file            string  `yaml:"log_file"`
+	Output_file         string  `yaml:"output_file"`
+	Processing_interval int     `yaml:"processing_interval"`
 }
+
+// JSON structs
 
 type Response struct {
 	Properties struct {
@@ -58,15 +67,27 @@ type Output struct {
 
 var fconfig Config
 
+/*
+ * SendGetRequest()
+ * A simple helper function to send a single GET request to the API server.
+ * Imposes a small request delay configurable by the user to avoid rate limiting the system.
+ */
+
 func SendGetRequest(url string) (*http.Response, int) {
 	val, err := http.Get(url)
 	if err != nil || val.StatusCode != 200 {
-		log.Printf("access denied! status code is %d\n", val.StatusCode)
+		log.Printf("Server failed to retrive %s with status code %d\n", url, val.StatusCode)
 		return nil, 1
 	}
-	time.Sleep(time.Millisecond * time.Duration(50))
+	time.Sleep(time.Millisecond * time.Duration(fconfig.Request_delay))
 	return val, 0
 }
+
+/*
+ * GetScore()
+ * Evaluates a given region obtained from the NWS API according to several heuristics.
+ * The score of a region represents the proportion of time that it is safe for a burn.
+ */
 
 func GetScore(region Contents) Output {
 	count := 0
@@ -96,6 +117,11 @@ func GetScore(region Contents) Output {
 	}
 }
 
+/*
+ * ConfigInit()
+ * Initializes the YAML file and loads it into the Config struct.
+ */
+
 func ConfigInit(filePath string) (*Config, error) {
 	config := &Config{}
 
@@ -115,7 +141,7 @@ func ConfigInit(filePath string) (*Config, error) {
 }
 
 /*
- * scanWeather()
+ * ScanWeather()
  * Process weather data for a chunk of the search area.
  * Launches a single goroutine that scans the region defined by lat0, lat1, long0, and long1,
  * sending GET requests to each 2.5x2.5km grid square.
