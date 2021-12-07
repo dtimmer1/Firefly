@@ -1,6 +1,6 @@
 <!DOCTYPE flight_plan SYSTEM "flight_plan.dtd">
 
-<flight_plan alt="260" ground_alt="185" lat0="43.46223" lon0="1.27289" max_dist_from_home="1800" name="Basic" security_height="25">
+<flight_plan alt="230" ground_alt="185" lat0="37.565515" lon0="-120.165669" max_dist_from_home="1800" name="Basic" security_height="25">
   <header>
 #include "subsystems/datalink/datalink.h"
 </header>
@@ -32,6 +32,9 @@
     <waypoint name="Start_SW" x="-710" y="-710"/>
     <waypoint name="Mid_SW" x="-1300" y="-850"/>
   </waypoints>
+  <variables>
+    <variable init="0" var="dropping_payload"/>
+  </variables>
   <exceptions/>
   <blocks>
     <block name="Wait GPS">
@@ -54,50 +57,66 @@
     </block>
     <block name="Burn NW" strip_button="Burn_NW" strip_icon="takeoff.png">
       <go wp="Start_NW"/>
+      <set value="1" var="dropping_payload"/>
       <circle radius="-764" until="NavCircleCount() > 0.15" wp="Northwest"/>
       <go wp="Mid_NW"/>
       <circle radius="-764" until="NavCircleCount() > 0.12" wp="Northwest"/>
+      <set value="0" var="dropping_payload"/>
       <deroute block="Standby"/>
     </block>
     <block name="Burn NE" strip_button="Burn_NE" strip_icon="takeoff.png">
       <go wp="Start_NE"/>
+      <set value="1" var="dropping_payload"/>
       <circle radius="764" until="NavCircleCount() > 0.15" wp="Northeast"/>
       <go wp="Mid_NE"/>
       <circle radius="764" until="NavCircleCount() > 0.12" wp="Northeast"/>
+      <set value="0" var="dropping_payload"/>
       <deroute block="Standby"/>
     </block>
     <block name="Burn SW" strip_button="Burn_SW" strip_icon="takeoff.png">
       <go wp="Start_SW"/>
+      <set value="1" var="dropping_payload"/>
       <circle radius="764" until="NavCircleCount() > 0.15" wp="Southwest"/>
       <go wp="Mid_SW"/>
       <circle radius="764" until="NavCircleCount() > 0.12" wp="Southwest"/>
+      <set value="0" var="dropping_payload"/>
       <deroute block="Standby"/>
     </block>
     <block name="Burn SE" strip_button="Burn_SE" strip_icon="takeoff.png">
       <go wp="Start_SE"/>
+      <set value="1" var="dropping_payload"/>
       <circle radius="-764" until="NavCircleCount() > 0.15" wp="Southeast"/>
       <go wp="Mid_SE"/>
       <circle radius="-764" until="NavCircleCount() > 0.12" wp="Southeast"/>
+      <set value="0" var="dropping_payload"/>
       <deroute block="Standby"/>
     </block>
     <block name="Burn N" strip_button="Burn N" strip_icon="takeoff.png">
       <go wp="Start_N"/>
+      <set value="1" var="dropping_payload"/>
       <circle radius="230" until="NavCircleCount() > 0.9" wp="Start_N"/>
+      <set value="0" var="dropping_payload"/>
       <deroute block="Standby"/>
     </block>
     <block name="Burn_S" strip_button="Burn S" strip_icon="takeoff.png">
       <go wp="Start_S"/>
+      <set value="1" var="dropping_payload"/>
       <circle radius="230" until="NavCircleCount() > 0.9" wp="Start_S"/>
+      <set value="0" var="dropping_payload"/>
       <deroute block="Standby"/>
     </block>
     <block name="Burn_E" strip_button="Burn E" strip_icon="takeoff.png">
       <go wp="Start_E"/>
+      <set value="1" var="dropping_payload"/>
       <circle radius="230" until="NavCircleCount() > 0.9" wp="Start_E"/>
+      <set value="0" var="dropping_payload"/>
       <deroute block="Standby"/>
     </block>
     <block name="Burn_W" strip_button="Burn W" strip_icon="takeoff.png">
       <go wp="Start_S"/>
+      <set value="1" var="dropping_payload"/>
       <circle radius="230" until="NavCircleCount() > 0.9" wp="Start_W"/>
+      <set value="0" var="dropping_payload"/>
       <deroute block="Standby"/>
     </block>
     <block group="home" key="Ctrl+a" name="Standby" strip_button="Standby" strip_icon="home.png">
